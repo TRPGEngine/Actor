@@ -1,5 +1,6 @@
 const db = global.db;
 const emitEvent = global.emitEvent;
+const _ = global._;
 
 beforeAll(async () => {
   const loginInfo = await emitEvent('player::login', {
@@ -43,6 +44,27 @@ describe('template event', () => {
     expect(ret.result).toBe(true);
     expect(ret).toHaveProperty('templates');
     expect(ret).toHaveProperty('templates.0.creator_name');
+  })
+
+  test('createTemplate should be ok', async () => {
+    let ret = await emitEvent('actor::createTemplate', {
+      name: 'test template ' + Math.random(),
+      info: JSON.stringify({
+        test: 'abc',
+        number: 2
+      })
+    })
+
+    expect(ret.result).toBe(true);
+    expect(ret).toHaveProperty('template');
+    expect(ret).toHaveProperty('template.creator_id');
+
+    let uuid = _.get(ret, 'template.uuid');
+    let dnum = await db.models.actor_template.destroy({
+      where: {uuid},
+      force: true, // 硬删除，默认是软删除
+    });
+    expect(dnum).toBeTruthy();
   })
 })
 
