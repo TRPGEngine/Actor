@@ -28,6 +28,7 @@ describe('template event', () => {
     let ret = await emitEvent('actor::getTemplate');
     expect(ret.result).toBe(true);
     expect(ret).toHaveProperty('templates');
+    expect(Array.isArray(ret.templates)).toBe(true);
   })
 
   test('getTemplate specify should be ok', async () => {
@@ -36,8 +37,15 @@ describe('template event', () => {
     expect(ret).toHaveProperty('template');
     expect(ret.template.uuid).toBe(this.testTemplate.uuid);
   })
+
+  test('findTemplate should be ok', async () => {
+    let ret = await emitEvent('actor::findTemplate', {name: '刀'});
+    expect(ret.result).toBe(true);
+    expect(ret).toHaveProperty('templates');
+    expect(ret).toHaveProperty('templates.0.creator_name');
+  })
 })
 
-describe('actor event', () => {
+// describe('actor event', () => {
 
-})
+// })
