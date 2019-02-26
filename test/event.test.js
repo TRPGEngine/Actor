@@ -22,7 +22,17 @@ afterAll(async () => {
 describe('template event', () => {
   beforeAll(async () => {
     expect(db.models).toHaveProperty('actor_template');
-    this.testTemplate = await db.models.actor_template.findOne();
+    this.testTemplate = await db.models.actor_template.create({
+      name: 'test template ' + Math.random(),
+      info: 'test info',
+      creatorId: this.userInfo.id
+    })
+  })
+
+  afterAll(async () => {
+    await this.testTemplate.destroy({
+      force: true
+    });
   })
 
   test('getTemplate all should be ok', async () => {
@@ -57,14 +67,42 @@ describe('template event', () => {
 
     expect(ret.result).toBe(true);
     expect(ret).toHaveProperty('template');
-    expect(ret).toHaveProperty('template.creator_id');
+    expect(ret).toHaveProperty('template.creatorId');
 
     let uuid = _.get(ret, 'template.uuid');
     let dnum = await db.models.actor_template.destroy({
       where: {uuid},
       force: true, // 硬删除，默认是软删除
     });
-    expect(dnum).toBeTruthy();
+    expect(dnum).toBeTruthy(); // 删除行数必须大于0
+  })
+
+  test('updateTemplate should be ok', async () => {
+    let randomText = 'modified ' + Math.random();
+    let ret = await emitEvent('actor::updateTemplate', {
+      uuid: this.testTemplate.uuid,
+      name: randomText + 'name',
+      desc: randomText + 'desc',
+      avatar: randomText + 'avatar',
+      info: randomText + 'info',
+    })
+
+    expect(ret.result).toBe(true);
+    expect(ret).toHaveProperty('template');
+    expect(ret).toHaveProperty('template.name', randomText + 'name');
+    expect(ret).toHaveProperty('template.desc', randomText + 'desc');
+    expect(ret).toHaveProperty('template.avatar', randomText + 'avatar');
+    expect(ret).toHaveProperty('template.info', randomText + 'info');
+
+    let dbInstance = await db.models.actor_template.findOne({
+      where: {
+        uuid: this.testTemplate.uuid
+      }
+    });
+    expect(dbInstance).toHaveProperty('name', randomText + 'name');
+    expect(dbInstance).toHaveProperty('desc', randomText + 'desc');
+    expect(dbInstance).toHaveProperty('avatar', randomText + 'avatar');
+    expect(dbInstance).toHaveProperty('info', randomText + 'info');
   })
 })
 
