@@ -104,6 +104,31 @@ describe('template event', () => {
     expect(dbInstance).toHaveProperty('avatar', randomText + 'avatar');
     expect(dbInstance).toHaveProperty('info', randomText + 'info');
   })
+
+  test('removeTemplate should be ok', async () => {
+    let oldTemplate = await db.models.actor_template.create({
+      name: 'test ' + Math.random(),
+      info: 'info',
+      creatorId: this.userInfo.id
+    });
+
+    let ret = await emitEvent('actor::removeTemplate', {
+      uuid: oldTemplate.uuid
+    });
+    expect(ret.result).toBe(true);
+
+    let newTemplate = await db.models.actor_template.findOne({
+      where: {
+        uuid: oldTemplate.uuid,
+      },
+      paranoid: false // 搜索包括已经被软删除的行
+    })
+    expect(newTemplate).toBeTruthy(); // 没有被硬删除
+    expect(newTemplate.deletedAt).toBeTruthy(); // 已经被软删除
+
+    // 把测试数据硬删除掉
+    await newTemplate.destroy({force: true});
+  })
 })
 
 // describe('actor event', () => {
