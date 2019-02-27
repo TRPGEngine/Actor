@@ -156,7 +156,8 @@ describe('actor event', () => {
     await db.models.actor_actor.destroy({
       where: {
         uuid: ret.actor.uuid
-      }
+      },
+      force: true,
     })
   })
 
@@ -175,4 +176,22 @@ describe('actor event', () => {
     expect(ret).toHaveProperty('actor');
     expect(ret).toHaveProperty('actor.uuid', this.testActor.uuid);
   });
+
+  test('removeActor should be ok', async () => {
+    let newTestActor = await db.models.actor_actor.create({
+      name: 'test name',
+      template_uuid: this.testTemplate.uuid,
+      ownerId: this.userInfo.id,
+    });
+
+    let ret = await emitEvent('actor::removeActor', {
+      uuid: newTestActor.uuid
+    });
+
+    expect(ret.result).toBe(true);
+
+    newTestActor.destroy({force: true});
+  });
+
+  test.todo('updateActor should be ok');
 })
