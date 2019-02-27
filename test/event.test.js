@@ -134,6 +134,7 @@ describe('template event', () => {
 describe('actor event', () => {
   beforeAll(async () => {
     this.testTemplate = await db.models.actor_template.findOne();
+    this.testActor = await db.models.actor_actor.findOne();
   })
 
   test('createActor should be ok', async () => {
@@ -158,4 +159,20 @@ describe('actor event', () => {
       }
     })
   })
+
+  test('getActor all should be ok', async () => {
+    let ret = await emitEvent('actor::getActor');
+    expect(ret.result).toBe(true);
+    expect(ret).toHaveProperty('actors');
+    expect(Array.isArray(ret.actors)).toBe(true);
+  })
+
+  test('getActor specify should be ok', async () => {
+    let ret = await emitEvent('actor::getActor', {
+      uuid: this.testActor.uuid
+    });
+    expect(ret.result).toBe(true);
+    expect(ret).toHaveProperty('actor');
+    expect(ret).toHaveProperty('actor.uuid', this.testActor.uuid);
+  });
 })
