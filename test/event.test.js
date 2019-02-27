@@ -131,6 +131,31 @@ describe('template event', () => {
   })
 })
 
-// describe('actor event', () => {
+describe('actor event', () => {
+  beforeAll(async () => {
+    this.testTemplate = await db.models.actor_template.findOne();
+  })
 
-// })
+  test('createActor should be ok', async () => {
+    let ret = await emitEvent('actor::createActor', {
+      name: 'test actor',
+      avatar: 'test avatar',
+      desc: 'test desc',
+      info: {
+        string: 'test',
+        number: 1,
+        array: ['a', 'b', 'c']
+      },
+      template_uuid: this.testTemplate.uuid
+    });
+    expect(ret.result).toBe(true);
+    expect(ret).toHaveProperty('actor');
+    // TODO: 需要增加avatar绑定检测
+
+    await db.models.actor_actor.destroy({
+      where: {
+        uuid: ret.actor.uuid
+      }
+    })
+  })
+})
